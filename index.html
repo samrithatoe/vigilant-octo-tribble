@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កម្មវិធីធ្វើសៀវភៅ និងស្លាយ AI (Khmer Book & Slide Studio v12)</title>
+    
+    <!-- Google Fonts សម្រាប់អក្សរខ្មែរ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Freehand&family=Kantumruy+Pro:wght@400;600;700&family=Koulen&family=Moul&family=Nokora:wght@400;700&family=Siemreap&display=swap" rel="stylesheet">
+    
+    <!-- PptxGenJS Library (បង្កើតឯកសារ .pptx ពិតប្រាកដ) -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-dark: #0f172a;
+            --bg-light: #f1f5f9;
+            --border: #cbd5e1;
+            
+            /* តម្លៃលំនាំដើមសម្រាប់ក្រដាស */
+            --page-width: 21cm;
+            --page-height: 29.7cm;
+            --margin-top: 2cm;
+            --margin-bottom: 2.2cm;
+            --margin-left: 2cm;
+            --margin-right: 2cm;
+            --font-family: 'Kantumruy Pro', sans-serif;
+            --font-size: 13pt;
+            --line-height: 1.6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Kantumruy Pro', sans-serif; background: var(--bg-light); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* របារខាងលើ */
+        header {
+            background: var(--bg-dark); color: white; padding: 8px 14px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25); z-index: 20;
+        }
+        .logo-area { display: flex; align-items: center; gap: 8px; }
+        .logo { font-family: 'Koulen', cursive; font-size: 17px; color: #38bdf8; }
+        .status-badge { background: #16a34a; color: white; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: bold; }
+        
+        .top-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+        .top-actions button {
+            background: var(--primary); color: white; border: none; padding: 6px 10px;
+            border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600;
+            touch-action: manipulation; transition: 0.15s;
+        }
+        .top-actions button:active { transform: scale(0.96); }
+        .btn-success { background: #16a34a !important; }
+        .btn-warning { background: #d97706 !important; }
+        .btn-slide-save { background: #ea580c !important; border: 1px solid #fdba74 !important; }
+        .btn-purple { background: #9333ea !important; }
+        .btn-danger { background: #dc2626 !important; }
+
+        /* ផ្នែកកណ្តាល */
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* របារឧបករណ៍ខាងឆ្វេង */
+        .sidebar {
+            width: 340px; background: white; border-right: 1px solid var(--border);
+            padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+        }
+        .control-group {
+            border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #f8fafc;
+        }
+        .control-group h3 {
+            font-size: 13px; color: var(--bg-dark); margin-bottom: 8px;
+            border-bottom: 1px solid var(--border); padding-bottom: 4px; font-weight: 700;
+        }
+        label { display: block; font-size: 11.5px; margin-bottom: 3px; color: #475569; font-weight: 600; }
+        input[type="text"], input[type="number"], input[type="file"], select, textarea {
+            width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 4px;
+            font-family: inherit; font-size: 12.5px; margin-bottom: 6px; background: white;
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        
+        .btn-full, .btn-sm {
+            width: 100%; padding: 7px; background: var(--primary); color: white;
+            border: none; border-radius: 5px; cursor: pointer; font-family: inherit; font-weight: 600;
+            font-size: 12px; touch-action: manipulation;
+        }
+        .btn-sm { padding: 5px; font-size: 11.5px; }
+
+        /* Tabs សម្រាប់ស្វែងរក */
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 6px; }
+        .tab-btn { flex: 1; padding: 5px; font-size: 11.5px; border: 1px solid var(--border); background: #e2e8f0; cursor: pointer; border-radius: 4px; font-family: inherit; font-weight: 600; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* កន្លែងបង្ហាញសន្លឹកកិច្ចការ */
+        .canvas-area {
+            flex: 1; background: #94a3b8; overflow: auto; padding: 25px;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+        }
+
+        /* ទម្រង់សន្លឹកក្រដាស / ស្លាយ */
+        .page-wrapper { position: relative; }
+        .page {
+            background: white;
+            width: var(--page-width);
+            height: var(--page-height);
+            padding: var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-family: var(--font-family);
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+            position: relative;
+            outline: none;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+        /* លេខទំព័រនៅបាតក្រដាស */
+        .page-footer-num {
+            position: absolute; bottom: 0.7cm; left: 0; right: 0;
+            text-align: center; font-size: 11pt; color: #475569;
+            pointer-events: none; user-select: none;
+        }
+
+        /* ក្របសៀវភៅ & ក្បាលស្លាយ */
+        .cover-design {
+            border: 4px double #1e3a8a; padding: 25px; text-align: center; height: 95%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            background: linear-gradient(135deg, #f0f9ff 0%, #bae6fd 100%);
+        }
+        .cover-title { font-family: 'Moul', serif; font-size: 24pt; color: #1e3a8a; }
+        .cover-subtitle { font-family: 'Koulen', cursive; font-size: 16pt; color: #0284c7; }
+        .slide-header-design {
+            background: linear-gradient(90deg, #1e3a8a, #2563eb); color: white;
+            padding: 12px 20px; border-radius: 6px; margin-bottom: 15px;
+            font-family: 'Koulen', cursive; font-size: 20pt;
+        }
+
+        /* តារាងមាតិកា */
+        .toc-container { border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; background: #f8fafc; }
+        .toc-title { font-family: 'Moul', serif; font-size: 16pt; text-align: center; color: #1e3a8a; margin-bottom: 12px; border-bottom: 2px solid #1e3a8a; padding-bottom: 6px; }
+        .toc-row { display: flex; justify-content: space-between; border-bottom: 1px dotted #94a3b8; padding: 4px 0; font-size: 12pt; }
+        .toc-row.h2 { padding-left: 20px; font-size: 11pt; color: #334155; }
+
+        .inserted-img { max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; }
+
+        /* Modal ជម្រើសរក្សាទុកស្លាយ */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.75); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: white; width: 92%; max-width: 460px; border-radius: 10px; padding: 20px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+        }
+        .modal-box h3 { font-family: 'Koulen', cursive; font-size: 18px; color: #1e3a8a; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+        .slide-option-card {
+            border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 8px;
+            cursor: pointer; transition: 0.15s; background: #f8fafc;
+        }
+        .slide-option-card:hover { background: #eff6ff; border-color: #2563eb; }
+        .slide-option-card strong { display: block; font-size: 13.5px; color: #0f172a; }
+        .slide-option-card span { font-size: 11.5px; color: #475569; }
+
+        /* មុខងារបញ្ចាំងស្លាយ */
+        .presentation-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 1000; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .presentation-content {
+            background: white; width: 92vw; height: 84vh; padding: 35px; overflow-y: auto;
+            border-radius: 8px; font-family: var(--font-family); font-size: 18pt; line-height: 1.6;
+        }
+        .pres-controls { margin-top: 12px; display: flex; gap: 10px; align-items: center; color: white; flex-wrap: wrap; justify-content: center; }
+        .pres-controls button { padding: 8px 14px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; background: #334155; color: white; font-family: inherit; }
+        #drawCanvas { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1001; }
+
+        /* ទម្រង់សម្រាប់ Print / PDF */
+        @media print {
+            body { background: white; height: auto; overflow: visible; }
+            header, .sidebar, .presentation-overlay, .modal-overlay { display: none !important; }
+            .main-container, .canvas-area { display: block; padding: 0; background: white; overflow: visible; }
+            .page-wrapper { page-break-after: always; break-after: page; margin: 0; }
+            .page { box-shadow: none; margin: 0; width: 100%; height: var(--page-height); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <div class="logo">📘 កម្មវិធីធ្វើសៀវភៅ & ស្លាយ AI</div>
+            <span class="status-badge" id="appStatus">រួចរាល់ (v12)</span>
+        </div>
+        <div class="top-actions">
+            <button id="btnAddPage">+ បន្ថែមទំព័រ</button>
+            <button class="btn-purple" id="btnStartPres">▶ បញ្ចាំងស្លាយ</button>
+            <button class="btn-slide-save" id="btnOpenSlideSave">📊 រក្សាទុកជាស្លាយ</button>
+            <button class="btn-warning" id="btnExportWord">📝 Word</button>
+            <button class="btn-success" id="btnExportPDF">🖨️ PDF / បោះពុម្ព</button>
+            <button class="btn-danger" id="btnClearAll">🗑️ សម្អាត</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- របារឧបករណ៍ខាងឆ្វេង -->
+        <div class="sidebar">
+            
+            <!-- មុខងារ ១៖ រៀបចំតារាងមាតិកាស្វ័យប្រវត្តិ -->
+            <div class="control-group">
+                <h3>📑 ១. តារាងមាតិកាស្វ័យប្រវត្តិ (TOC)</h3>
+                <div class="grid-2" style="margin-bottom:6px;">
+                    <button class="btn-sm" style="background:#0284c7;" id="btnMarkH1">+ ជំពូក (H1)</button>
+                    <button class="btn-sm" style="background:#0d9488;" id="btnMarkH2">+ ចំណងជើងរង (H2)</button>
+                </div>
+                <button class="btn-full" style="background:#1e3a8a;" id="btnGenerateTOC">🔄 បង្កើត / ធ្វើបច្ចុប្បន្នភាពមាតិកា</button>
+            </div>
+
+            <!-- មុខងារ ២៖ ស្វែងរកចម្លើយពី Google / តំណភ្ជាប់ -->
+            <div class="control-group">
+                <h3>🌐 ២. ស្វែងរកខ្លឹមសារ & តំណភ្ជាប់</h3>
+                <div class="tab-bar">
+                    <button class="tab-btn active" id="tabTopic">តាមប្រធានបទ</button>
+                    <button class="tab-btn" id="tabUrl">តាមតំណភ្ជាប់ (URL)</button>
+                </div>
+                
+                <div id="panelTopic">
+                    <input type="text" id="topicInput" placeholder="វាយប្រធានបទ (ឧ. អង្គរវត្ត)...">
+                    <div class="grid-2">
+                        <button class="btn-sm" id="btnSearchTopic">🔍 ទាញអត្ថបទ</button>
+                        <button class="btn-sm" style="background:#475569;" id="btnOpenGoogle">បើក Google</button>
+                    </div>
+                </div>
+
+                <div id="panelUrl" style="display:none;">
+                    <input type="text" id="urlInput" placeholder="បិទភ្ជាប់តំណភ្ជាប់ https://...">
+                    <button class="btn-sm" id="btnFetchUrl">📥 ទាញខ្លឹមសារពីតំណភ្ជាប់</button>
+                </div>
+                <div id="searchStatus" style="font-size:11px; color:#2563eb; margin-top:4px;"></div>
+            </div>
+
+            <!-- មុខងារ ៣៖ កំណត់ក្រដាស រឹម (Cm) & លោតក្រដាសស្វ័យប្រវត្តិ -->
+            <div class="control-group">
+                <h3>📐 ៣. ខ្នាតក្រដាស រឹម (Cm) & លោតទំព័រ</h3>
+                <select id="pageSize">
+                    <option value="A4">សៀវភៅ A4 (21cm x 29.7cm)</option>
+                    <option value="A5">សៀវភៅ A5 (14.8cm x 21cm)</option>
+                    <option value="SLIDE">ស្លាយ 16:9 (29.7cm x 16.7cm)</option>
+                </select>
+                
+                <label>រឹមក្រដាស លើ / ក្រោម / ឆ្វេង / ស្តាំ (Cm)៖</label>
+                <div class="grid-4">
+                    <input type="number" id="mTop" value="2" step="0.1" title="លើ">
+                    <input type="number" id="mBottom" value="2.2" step="0.1" title="ក្រោម">
+                    <input type="number" id="mLeft" value="2" step="0.1" title="ឆ្វេង">
+                    <input type="number" id="mRight" value="2" step="0.1" title="ស្តាំ">
+                </div>
+
+                <label style="display:flex; align-items:center; gap:6px; margin-top:4px; cursor:pointer; color:#0f172a;">
+                    <input type="checkbox" id="autoPageBreak" checked> លោតបន្ថែមក្រដាសស្វ័យប្រវត្តិពេលពេញ
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; margin-top:3px; cursor:pointer; color:#0f172a;">
+                    <input type="checkbox" id="hideCoverNum" checked> មិនដាក់លេខទំព័រលើក្រប (ទំព័រទី១)
+                </label>
+            </div>
+
+            <!-- មុខងារ ៤៖ ពុម្ពអក្សរខ្មែរ & គម្លាតបន្ទាត់ -->
+            <div class="control-group">
+                <h3>🔤 ៤. ពុម្ពអក្សរខ្មែរ & គម្លាតបន្ទាត់</h3>
+                <select id="fontFamily">
+                    <option value="'Kantumruy Pro', sans-serif">Kantumruy Pro (កន្ទុំរុយ)</option>
+                    <option value="'Battambang', cursive">Battambang (បាត់ដំបង)</option>
+                    <option value="'Siemreap', cursive">Siemreap (សៀមរាប)</option>
+                    <option value="'Moul', serif">Khmer OS Muol (អក្សរឆ្លាក់/មូល)</option>
+                    <option value="'Koulen', cursive">Koulen (គូលែន)</option>
+                    <option value="'Nokora', sans-serif">Nokora (នគរា)</option>
+                    <option value="'Freehand', cursive">Freehand (អក្សរដៃ)</option>
+                </select>
+
+                <div class="grid-2">
+                    <div>
+                        <label>ទំហំអក្សរ (pt)៖</label>
+                        <input type="number" id="fontSize" value="13">
+                    </div>
+                    <div>
+                        <label>គម្លាតបន្ទាត់៖</label>
+                        <input type="number" id="lineHeight" value="1.6" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="grid-4">
+                    <button class="btn-sm" style="background:#475569;" data-cmd="bold"><b>B</b></button>
+                    <button class="btn-sm" style="background:#475569;" data-cmd="italic"><i>I</i></button>
+                    <button class="btn-sm" style="background:#475569;" data-cmd="justifyLeft">ឆ្វេង</button>
+                    <button class="btn-sm" style="background:#475569;" data-cmd="justifyCenter">កណ្តាល</button>
+                </div>
+            </div>
+
+            <!-- មុខងារ ៥៖ ក្របសៀវភៅ ក្បាលស្លាយ & រូបភាព -->
+            <div class="control-group">
+                <h3>🎨 ៥. ក្របសៀវភៅ ក្បាលស្លាយ & រូបភាព</h3>
+                <div class="grid-2" style="margin-bottom:6px;">
+                    <button class="btn-sm" style="background:#0284c7;" id="btnBookCover">+ ក្របសៀវភៅ</button>
+                    <button class="btn-sm" style="background:#0d9488;" id="btnSlideHeader">+ ក្បាលស្លាយ</button>
+                </div>
+                <label>បញ្ចូលរូបភាពពីម៉ាស៊ីន៖</label>
+                <input type="file" id="imgUpload" accept="image/*">
+            </div>
+
+        </div>
+
+        <!-- កន្លែងបង្ហាញសន្លឹកកិច្ចការ -->
+        <div class="canvas-area" id="workspace">
+            <div class="page-wrapper">
+                <div class="page" contenteditable="true" id="page-1">
+                    <h1 class="toc-h1" style="font-family: 'Moul', serif; color: #1e3a8a; font-size: 18pt; text-align: center;">ជំពូកទី ១៖ សេចក្តីផ្តើម</h1>
+                    <p style="margin-top: 12px;">សូមស្វាគមន៍មកកាន់កម្មវិធីធ្វើសៀវភៅ និងស្លាយ (v12)។ នៅក្នុងកំណែថ្មីនេះ អ្នកអាចចុចប៊ូតុង <b>"📊 រក្សាទុកជាស្លាយ"</b> នៅរបារខាងលើ ដើម្បីជ្រើសរើសទម្រង់រក្សាទុកជាស្លាយបានច្រើនជម្រើស៖</p>
+                    <ul style="margin-left: 22px; margin-top: 8px;">
+                        <li><b>PowerPoint (.pptx) ពិតប្រាកដ៖</b> អាចយកទៅបើកកែសម្រួលក្នុង Microsoft PowerPoint ឬ Google Slides បានភ្លាមៗ។</li>
+                        <li><b>ស្លាយ HTML អន្តរកម្ម (.html)៖</b> ឯកសារស្លាយឯករាជ្យ អាចបើកបញ្ចាំងពេញអេក្រង់ និងមានប៊ិចគូសលើស្លាយ។</li>
+                        <li><b>ស្លាយ PDF ទម្រង់ 16:9៖</b> រក្សាពុម្ពអក្សរខ្មែរ និងរូបភាពមិនឱ្យរត់ខុសទ្រង់ទ្រាយ។</li>
+                    </ul>
+                </div>
+                <div class="page-footer-num">- ទំព័រទី ១ -</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ជម្រើសរក្សាទុកជាស្លាយ -->
+    <div class="modal-overlay" id="slideSaveModal">
+        <div class="modal-box">
+            <h3>📊 ជ្រើសរើសទម្រង់រក្សាទុកជាស្លាយ</h3>
+            
+            <div class="slide-option-card" id="optSavePPTX">
+                <strong>១. ឯកសារ PowerPoint (.pptx) — 16:9 Widescreen</strong>
+                <span>បំប្លែងគ្រប់ទំព័រទៅជាស្លាយ PowerPoint រួមទាំងចំណងជើង អត្ថបទ និងរូបភាព។</span>
+            </div>
+
+            <div class="slide-option-card" id="optSaveHTMLSlide">
+                <strong>២. ស្លាយបញ្ចាំងឯករាជ្យ (.html Presentation)</strong>
+                <span>រក្សាទុកជាឯកសារស្លាយបញ្ចាំងពេញអេក្រង់ មានប៊ិចគូស និងរក្សាពុម្ពអក្សរខ្មែរ ១០០% ដោយមិនបាច់មានអ៊ីនធឺណិត។</span>
+            </div>
+
+            <div class="slide-option-card" id="optSavePDFSlide">
+                <strong>៣. ប្តូរខ្នាតជាស្លាយ 16:9 រួចបោះពុម្ពជា PDF</strong>
+                <span>កំណត់ទំហំក្រដាសទៅជាស្លាយ 16:9 ដោយស្វ័យប្រវត្តិ និងបើកផ្ទាំងរក្សាទុក PDF។</span>
+            </div>
+
+            <button class="btn-full" style="background:#64748b; margin-top:6px;" id="btnCloseSlideModal">បិទផ្ទាំងនេះ</button>
+        </div>
+    </div>
+
+    <!-- ផ្ទាំងបញ្ចាំងស្លាយ -->
+    <div class="presentation-overlay" id="presOverlay">
+        <canvas id="drawCanvas"></canvas>
+        <div class="presentation-content" id="presContent"></div>
+        <div class="pres-controls">
+            <button id="btnPrevSlide">◀ មុន</button>
+            <span id="slideCounter">១ / ១</span>
+            <button id="btnNextSlide">បន្ទាប់ ▶</button>
+            <button id="btnTogglePen" style="background:#dc2626;">✏️ ប៊ិចគូសលើស្លាយ</button>
+            <button id="btnClearPen">🧹 លុបគំនូស</button>
+            <button id="btnExitPres" style="background:#475569;">✖ ចាកចេញ</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        "use strict";
+
+        let currentSlideIndex = 0;
+        let isDrawingMode = false;
+        let isDrawing = false;
+        const STORAGE_KEY = "khmer_book_studio_v12_data";
+
+        function toKhmerNum(num) {
+            const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+            return num.toString().split('').map(d => khDigits[parseInt(d)] || d).join('');
+        }
+
+        function saveToLocal() {
+            try {
+                const pages = Array.from(document.querySelectorAll('.page')).map(p => p.innerHTML);
+                const state = {
+                    pages: pages,
+                    pageSize: document.getElementById('pageSize').value,
+                    mTop: document.getElementById('mTop').value,
+                    mBottom: document.getElementById('mBottom').value,
+                    mLeft: document.getElementById('mLeft').value,
+                    mRight: document.getElementById('mRight').value,
+                    fontFamily: document.getElementById('fontFamily').value,
+                    fontSize: document.getElementById('fontSize').value,
+                    lineHeight: document.getElementById('lineHeight').value,
+                    hideCoverNum: document.getElementById('hideCoverNum').checked
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {}
+        }
+
+        function loadFromLocal() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (state.pageSize) document.getElementById('pageSize').value = state.pageSize;
+                if (state.mTop) document.getElementById('mTop').value = state.mTop;
+                if (state.mBottom) document.getElementById('mBottom').value = state.mBottom;
+                if (state.mLeft) document.getElementById('mLeft').value = state.mLeft;
+                if (state.mRight) document.getElementById('mRight').value = state.mRight;
+                if (state.fontFamily) document.getElementById('fontFamily').value = state.fontFamily;
+                if (state.fontSize) document.getElementById('fontSize').value = state.fontSize;
+                if (state.lineHeight) document.getElementById('lineHeight').value = state.lineHeight;
+                if (typeof state.hideCoverNum === 'boolean') document.getElementById('hideCoverNum').checked = state.hideCoverNum;
+
+                if (state.pages && state.pages.length > 0) {
+                    const ws = document.getElementById('workspace');
+                    ws.innerHTML = '';
+                    state.pages.forEach((html, idx) => {
+                        createPageElement(html, idx === 0);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        function updatePageNumbers() {
+            const wrappers = document.querySelectorAll('.page-wrapper');
+            const hideFirst = document.getElementById('hideCoverNum').checked;
+            wrappers.forEach((w, idx) => {
+                const page = w.querySelector('.page');
+                const footer = w.querySelector('.page-footer-num');
+                if (page) page.id = 'page-' + (idx + 1);
+                if (footer) {
+                    if (idx === 0 && hideFirst) {
+                        footer.style.display = 'none';
+                    } else {
+                        footer.style.display = 'block';
+                        footer.textContent = `- ទំព័រទី ${toKhmerNum(idx + 1)} -`;
+                    }
+                }
+            });
+        }
+
+        function createPageElement(initialHTML = '<p><br></p>', skipScroll = false) {
+            const ws = document.getElementById('workspace');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'page-wrapper';
+
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.contentEditable = "true";
+            page.innerHTML = initialHTML;
+
+            const footer = document.createElement('div');
+            footer.className = 'page-footer-num';
+
+            wrapper.appendChild(page);
+            wrapper.appendChild(footer);
+            ws.appendChild(wrapper);
+
+            attachPageEvents(page);
+            updatePageNumbers();
+            if (!skipScroll) page.scrollIntoView({ behavior: 'smooth' });
+            return page;
+        }
+
+        function focusEndOfElement(el) {
+            el.focus();
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        function checkPageOverflow(page) {
+            if (!document.getElementById('autoPageBreak').checked) return;
+            let guard = 0;
+            while (page.scrollHeight > page.clientHeight + 4 && page.childNodes.length > 1 && guard < 30) {
+                guard++;
+                let nextWrapper = page.parentElement.nextElementSibling;
+                let nextPage = nextWrapper ? nextWrapper.querySelector('.page') : createPageElement('', true);
+
+                const lastNode = page.lastChild;
+                if (!lastNode) break;
+
+                if (lastNode.nodeType === Node.TEXT_NODE && lastNode.textContent.trim().length > 40) {
+                    const text = lastNode.textContent;
+                    const splitIdx = text.lastIndexOf(' ', Math.floor(text.length * 0.7));
+                    if (splitIdx > 0) {
+                        const overflowText = text.slice(splitIdx);
+                        lastNode.textContent = text.slice(0, splitIdx);
+                        const p = document.createElement('p');
+                        p.textContent = overflowText.trim();
+                        nextPage.insertBefore(p, nextPage.firstChild);
+                        focusEndOfElement(p);
+                        continue;
+                    }
+                }
+
+                nextPage.insertBefore(lastNode, nextPage.firstChild);
+                focusEndOfElement(nextPage);
+            }
+        }
+
+        function attachPageEvents(page) {
+            page.addEventListener('input', () => {
+                checkPageOverflow(page);
+                saveToLocal();
+            });
+
+            page.addEventListener('paste', () => {
+                setTimeout(() => {
+                    document.querySelectorAll('.page').forEach(p => checkPageOverflow(p));
+                    saveToLocal();
+                }, 50);
+            });
+
+            page.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && page.innerText.trim() === '' && document.querySelectorAll('.page').length > 1) {
+                    const prevWrapper = page.parentElement.previousElementSibling;
+                    if (prevWrapper) {
+                        e.preventDefault();
+                        const prevPage = prevWrapper.querySelector('.page');
+                        page.parentElement.remove();
+                        updatePageNumbers();
+                        focusEndOfElement(prevPage);
+                        saveToLocal();
+                    }
+                }
+            });
+        }
+
+        function updatePageSettings() {
+            const size = document.getElementById('pageSize').value;
+            const root = document.documentElement;
+            if (size === 'A4') {
+                root.style.setProperty('--page-width', '21cm');
+                root.style.setProperty('--page-height', '29.7cm');
+            } else if (size === 'A5') {
+                root.style.setProperty('--page-width', '14.8cm');
+                root.style.setProperty('--page-height', '21cm');
+            } else if (size === 'SLIDE') {
+                root.style.setProperty('--page-width', '29.7cm');
+                root.style.setProperty('--page-height', '16.7cm');
+            }
+            root.style.setProperty('--margin-top', document.getElementById('mTop').value + 'cm');
+            root.style.setProperty('--margin-bottom', document.getElementById('mBottom').value + 'cm');
+            root.style.setProperty('--margin-left', document.getElementById('mLeft').value + 'cm');
+            root.style.setProperty('--margin-right', document.getElementById('mRight').value + 'cm');
+            updatePageNumbers();
+            saveToLocal();
+        }
+
+        function updateTypography() {
+            const root = document.documentElement;
+            root.style.setProperty('--font-family', document.getElementById('fontFamily').value);
+            root.style.setProperty('--font-size', document.getElementById('fontSize').value + 'pt');
+            root.style.setProperty('--line-height', document.getElementById('lineHeight').value);
+            saveToLocal();
+        }
+
+        // ១. មុខងារតារាងមាតិកាស្វ័យប្រវត្តិ (TOC)
+        function markHeading(level) {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+                alert("សូមអូសជ្រើសរើស (Highlight) អក្សរចំណងជើងជាមុនសិន!");
+                return;
+            }
+            const range = sel.getRangeAt(0);
+            const tag = level === 1 ? 'h2' : 'h3';
+            const el = document.createElement(tag);
+            el.className = level === 1 ? 'toc-h1' : 'toc-h2';
+            el.style.fontFamily = level === 1 ? "'Koulen', cursive" : "'Kantumruy Pro', sans-serif";
+            el.style.color = level === 1 ? '#1e3a8a' : '#0f172a';
+            el.style.fontSize = level === 1 ? '16pt' : '14pt';
+            el.style.marginTop = '10px';
+            el.textContent = sel.toString();
+            range.deleteContents();
+            range.insertNode(el);
+            saveToLocal();
+        }
+
+        function generateTOC() {
+            const existingToc = document.getElementById('toc-page-wrapper');
+            if (existingToc) existingToc.remove();
+            updatePageNumbers();
+
+            const items = [];
+            document.querySelectorAll('.page-wrapper').forEach((wrapper, idx) => {
+                const pageNum = idx + 2; // បូក ១ ទំព័រមាតិកាខ្លួនឯង
+                wrapper.querySelectorAll('.toc-h1, .toc-h2, h1, h2').forEach(h => {
+                    const text = h.innerText.trim();
+                    if (text && !text.includes('ព្រះរាជាណាចក្រកម្ពុជា') && !text.includes('តារាងមាតិកា')) {
+                        const isH2 = h.classList.contains('toc-h2');
+                        items.push({ text, page: pageNum, isH2 });
+                    }
+                });
+            });
+
+            if (items.length === 0) {
+                alert("មិនទាន់មានចំណងជើងនៅឡើយទេ! សូមជ្រើសរើសអក្សរ រួចចុច '+ ជំពូក (H1)' ជាមុនសិន។");
+                return;
+            }
+
+            let rowsHTML = items.map(it => `
+                <div class="toc-row ${it.isH2 ? 'h2' : ''}">
+                    <span>${it.text}</span>
+                    <span><b>${toKhmerNum(it.page)}</b></span>
+                </div>
+            `).join('');
+
+            const ws = document.getElementById('workspace');
+            const tocWrapper = document.createElement('div');
+            tocWrapper.className = 'page-wrapper';
+            tocWrapper.id = 'toc-page-wrapper';
+
+            const tocPage = document.createElement('div');
+            tocPage.className = 'page';
+            tocPage.contentEditable = "true";
+            tocPage.innerHTML = `<div class="toc-container"><div class="toc-title">តារាងមាតិកា</div>${rowsHTML}</div>`;
+
+            const footer = document.createElement('div');
+            footer.className = 'page-footer-num';
+
+            tocWrapper.appendChild(tocPage);
+            tocWrapper.appendChild(footer);
+            attachPageEvents(tocPage);
+
+            const firstWrapper = ws.firstElementChild;
+            if (firstWrapper && firstWrapper.querySelector('.cover-design')) {
+                ws.insertBefore(tocWrapper, firstWrapper.nextSibling);
+            } else {
+                ws.insertBefore(tocWrapper, firstWrapper);
+            }
+            updatePageNumbers();
+            tocPage.scrollIntoView({ behavior: 'smooth' });
+            saveToLocal();
+        }
+
+        // ២. ស្វែងរកតាមប្រធានបទ & តំណភ្ជាប់ URL
+        async function searchByTopic() {
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) { alert("សូមវាយបញ្ចូលប្រធានបទ!"); return; }
+            const status = document.getElementById('searchStatus');
+            status.textContent = "កំពុងស្វែងរកទិន្នន័យ...";
+
+            const pages = document.querySelectorAll('.page');
+            const targetPage = pages[pages.length - 1];
+
+            try {
+                const url = `https://km.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&format=json&origin=*&titles=${encodeURIComponent(topic)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const pageObj = Object.values(data.query.pages)[0];
+
+                if (pageObj && pageObj.extract) {
+                    targetPage.innerHTML += `<h2 class="toc-h1" style="font-family:'Koulen',cursive; color:#1e3a8a; margin-top:12px;">${topic}</h2><p style="margin-top:8px;">${pageObj.extract}</p>`;
+                    status.textContent = "ទាញអត្ថបទពី Wikipedia ខ្មែរជោគជ័យ!";
+                } else {
+                    targetPage.innerHTML += `
+                        <h2 class="toc-h1" style="font-family:'Koulen',cursive; color:#1e3a8a; margin-top:12px;">ប្រធានបទ៖ ${topic}</h2>
+                        <p style="margin-top:8px;"><b>១. សេចក្តីផ្តើម៖</b> ${topic} គឺជាប្រធានបទដ៏មានសារៈសំខាន់ក្នុងការសិក្សាស្រាវជ្រាវ។</p>
+                        <p style="margin-top:8px;"><b>២. ខ្លឹមសារសំខាន់ៗ៖</b> ការស្វែងយល់អំពី ${topic} ផ្តល់នូវចំណេះដឹង និងមូលដ្ឋានគ្រឹះសម្រាប់ការអនុវត្តជាក់ស្តែង។</p>
+                    `;
+                    status.textContent = "បានបង្កើតគ្រោងអត្ថបទគម្រូ!";
+                }
+                checkPageOverflow(targetPage);
+                saveToLocal();
+            } catch (e) {
+                status.textContent = "មិនអាចភ្ជាប់អ៊ីនធឺណិតបានទេ។";
+            }
+        }
+
+        async function fetchFromUrl() {
+            const rawUrl = document.getElementById('urlInput').value.trim();
+            if (!rawUrl.startsWith('http')) { alert("សូមបញ្ចូលតំណភ្ជាប់ត្រឹមត្រូវ (ផ្តើមដោយ https://)"); return; }
+            const status = document.getElementById('searchStatus');
+            status.textContent = "កំពុងទាញខ្លឹមសារពីតំណភ្ជាប់...";
+            const pages = document.querySelectorAll('.page');
+            const targetPage = pages[pages.length - 1];
+
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`;
+                const res = await fetch(proxyUrl);
+                const json = await res.json();
+                const doc = new DOMParser().parseFromString(json.contents, 'text/html');
+                const title = doc.querySelector('title')?.innerText || rawUrl;
+                const paragraphs = Array.from(doc.querySelectorAll('p')).map(p => p.innerText.trim()).filter(t => t.length > 40).slice(0, 6);
+
+                targetPage.innerHTML += `<h2 class="toc-h1" style="font-family:'Koulen',cursive; color:#1e3a8a; margin-top:12px;">${title}</h2>`;
+                paragraphs.forEach(p => {
+                    targetPage.innerHTML += `<p style="margin-top:8px;">${p}</p>`;
+                });
+                status.textContent = "ទាញខ្លឹមសារពីតំណភ្ជាប់ជោគជ័យ!";
+                checkPageOverflow(targetPage);
+                saveToLocal();
+            } catch (e) {
+                status.textContent = "មិនអាចទាញទិន្នន័យពីតំណភ្ជាប់នេះបានទេ។";
+            }
+        }
+
+        // ==========================================
+        // មុខងាររក្សាទុកជាស្លាយ (ច្រើនជម្រើស)
+        // ==========================================
+        function saveAsPPTX() {
+            const pages = document.querySelectorAll('.page');
+            if (typeof PptxGenJS === 'undefined') {
+                alert("មិនអាចផ្ទុកប្រព័ន្ធ PowerPoint បានទេ (សូមពិនិត្យអ៊ីនធឺណិត ឬជ្រើសរើសជម្រើសទី ២៖ ស្លាយ HTML អន្តរកម្ម)។");
+                return;
+            }
+            const pptx = new PptxGenJS();
+            pptx.layout = 'LAYOUT_16x9';
+
+            pages.forEach((page, idx) => {
+                const slide = pptx.addSlide();
+                const heading = page.querySelector('h1, h2, .cover-title, .slide-header-design');
+                const titleText = heading ? heading.innerText.trim() : `ស្លាយទី ${idx + 1}`;
+
+                // ដាក់ក្បាលស្លាយ
+                slide.addText(titleText, {
+                    x: 0.5, y: 0.4, w: '90%', h: 0.8,
+                    fontSize: 24, bold: true, color: '1E3A8A'
+                });
+
+                // ទាញអត្ថបទខ្លឹមសារ (ដកចំណងជើងចេញ)
+                let bodyText = page.innerText.replace(titleText, '').trim();
+                const imgs = page.querySelectorAll('img');
+
+                if (imgs.length > 0 && imgs[0].src.startsWith('data:image')) {
+                    slide.addText(bodyText, {
+                        x: 0.5, y: 1.4, w: '52%', h: 3.8,
+                        fontSize: 15, color: '1E293B', valign: 'top'
+                    });
+                    slide.addImage({
+                        data: imgs[0].src, x: 5.9, y: 1.4, w: 3.6, h: 3.4
+                    });
+                } else {
+                    slide.addText(bodyText, {
+                        x: 0.5, y: 1.4, w: '90%', h: 3.8,
+                        fontSize: 16, color: '1E293B', valign: 'top'
+                    });
+                }
+            });
+
+            pptx.writeFile({ fileName: 'Khmer_Presentation_Slides.pptx' });
+            document.getElementById('slideSaveModal').style.display = 'none';
+        }
+
+        function saveAsStandaloneHTMLSlide() {
+            const pages = Array.from(document.querySelectorAll('.page')).map(p => p.innerHTML);
+            const fontFam = document.getElementById('fontFamily').value;
+
+            const standaloneHTML = `<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>បទបង្ហាញស្លាយ (Khmer Interactive Slides)</title>
+<link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@400;600;700&family=Koulen&family=Moul&family=Nokora:wght@400;700&family=Siemreap&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#0f172a;color:#0f172a;font-family:${fontFam};display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  .stage{flex:1;display:flex;justify-content:center;align-items:center;padding:20px;position:relative;}
+  .slide-box{background:white;width:92vw;max-width:1180px;height:82vh;border-radius:12px;padding:40px;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,0.5);font-size:18pt;line-height:1.6;}
+  .cover-design{border:4px double #1e3a8a;padding:25px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(135deg,#f0f9ff 0%,#bae6fd 100%);}
+  .cover-title{font-family:'Moul',serif;font-size:28pt;color:#1e3a8a;}
+  .cover-subtitle{font-family:'Koulen',cursive;font-size:18pt;color:#0284c7;}
+  .slide-header-design{background:linear-gradient(90deg,#1e3a8a,#2563eb);color:white;padding:14px 22px;border-radius:8px;margin-bottom:18px;font-family:'Koulen',cursive;font-size:22pt;}
+  img{max-width:100%;height:auto;border-radius:8px;margin:10px 0;}
+  .bar{background:#1e293b;padding:12px;display:flex;justify-content:center;align-items:center;gap:14px;color:white;z-index:10;}
+  button{padding:8px 16px;border:none;border-radius:6px;background:#2563eb;color:white;font-family:inherit;font-size:14px;cursor:pointer;font-weight:bold;}
+  canvas{position:absolute;top:0;left:0;pointer-events:none;z-index:5;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="c"></canvas>
+  <div class="slide-box" id="box"></div>
+</div>
+<div class="bar">
+  <button onclick="prev()">◀ មុន</button>
+  <span id="cnt">1 / ${pages.length}</span>
+  <button onclick="next()">បន្ទាប់ ▶</button>
+  <button onclick="togglePen()" id="pbtn" style="background:#dc2626;">✏️ ប៊ិចគូស</button>
+  <button onclick="clr()" style="background:#475569;">🧹 លុបគំនូស</button>
+</div>
+<script>
+  const slides = ${JSON.stringify(pages)};
+  let idx = 0, pen = false, drawing = false;
+  const box = document.getElementById('box'), cnt = document.getElementById('cnt'), c = document.getElementById('c'), ctx = c.getContext('2d');
+  function resize(){ c.width = window.innerWidth; c.height = window.innerHeight - 60; ctx.strokeStyle = 'red'; ctx.lineWidth = 4; ctx.lineCap = 'round'; }
+  window.onresize = resize; resize();
+  function render(){ box.innerHTML = slides[idx]; cnt.textContent = (idx+1) + ' / ' + slides.length; clr(); }
+  function next(){ if(idx < slides.length-1){ idx++; render(); } }
+  function prev(){ if(idx > 0){ idx--; render(); } }
+  function togglePen(){ pen = !pen; c.style.pointerEvents = pen ? 'auto' : 'none'; document.getElementById('pbtn').style.background = pen ? '#16a34a' : '#dc2626'; }
+  function clr(){ ctx.clearRect(0,0,c.width,c.height); }
+  c.onmousedown = e => { if(pen){ drawing=true; ctx.beginPath(); ctx.moveTo(e.clientX,e.clientY); } };
+  c.onmousemove = e => { if(drawing && pen){ ctx.lineTo(e.clientX,e.clientY); ctx.stroke(); } };
+  c.onmouseup = () => drawing = false;
+  document.onkeydown = e => { if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') prev(); };
+  render();
+<\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([standaloneHTML], { type: 'text/html;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Khmer_Slide_Presentation.html';
+            link.click();
+            document.getElementById('slideSaveModal').style.display = 'none';
+        }
+
+        function saveAsPDFSlide() {
+            document.getElementById('pageSize').value = 'SLIDE';
+            updatePageSettings();
+            document.getElementById('slideSaveModal').style.display = 'none';
+            setTimeout(() => window.print(), 200);
+        }
+
+        // រក្សាទុក Word
+        function exportToWord() {
+            let htmlBody = '';
+            document.querySelectorAll('.page-wrapper').forEach(w => {
+                const pageClone = w.querySelector('.page').cloneNode(true);
+                const footer = w.querySelector('.page-footer-num');
+                htmlBody += `<div>${pageClone.innerHTML}<p style="text-align:center;color:#666;">${footer.style.display !== 'none' ? footer.innerText : ''}</p></div><br clear=all style='page-break-before:always'>`;
+            });
+            const docHTML = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'></head><body>${htmlBody}</body></html>`;
+            const blob = new Blob(['﻿', docHTML], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Khmer_Book_Document.doc';
+            link.click();
+        }
+
+        // ភ្ជាប់ព្រឹត្តិការណ៍ប៊ូតុងទាំងអស់
+        document.getElementById('btnAddPage').addEventListener('click', () => { createPageElement(); saveToLocal(); });
+        document.getElementById('btnClearAll').addEventListener('click', () => {
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យទាំងអស់ដើម្បីចាប់ផ្តើមថ្មីមែនទេ?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                document.getElementById('workspace').innerHTML = '';
+                createPageElement('<p>ចាប់ផ្តើមសរសេរនៅទីនេះ...</p>');
+            }
+        });
+
+        // ប៊ូតុងរក្សាទុកជាស្លាយ
+        document.getElementById('btnOpenSlideSave').addEventListener('click', () => {
+            document.getElementById('slideSaveModal').style.display = 'flex';
+        });
+        document.getElementById('btnCloseSlideModal').addEventListener('click', () => {
+            document.getElementById('slideSaveModal').style.display = 'none';
+        });
+        document.getElementById('optSavePPTX').addEventListener('click', saveAsPPTX);
+        document.getElementById('optSaveHTMLSlide').addEventListener('click', saveAsStandaloneHTMLSlide);
+        document.getElementById('optSavePDFSlide').addEventListener('click', saveAsPDFSlide);
+
+        document.getElementById('btnExportWord').addEventListener('click', exportToWord);
+        document.getElementById('btnExportPDF').addEventListener('click', () => window.print());
+
+        // TOC
+        document.getElementById('btnMarkH1').addEventListener('click', () => markHeading(1));
+        document.getElementById('btnMarkH2').addEventListener('click', () => markHeading(2));
+        document.getElementById('btnGenerateTOC').addEventListener('click', generateTOC);
+
+        // Search & URL Tabs
+        document.getElementById('tabTopic').addEventListener('click', () => {
+            document.getElementById('tabTopic').classList.add('active');
+            document.getElementById('tabUrl').classList.remove('active');
+            document.getElementById('panelTopic').style.display = 'block';
+            document.getElementById('panelUrl').style.display = 'none';
+        });
+        document.getElementById('tabUrl').addEventListener('click', () => {
+            document.getElementById('tabUrl').classList.add('active');
+            document.getElementById('tabTopic').classList.remove('active');
+            document.getElementById('panelUrl').style.display = 'block';
+            document.getElementById('panelTopic').style.display = 'none';
+        });
+        document.getElementById('btnSearchTopic').addEventListener('click', searchByTopic);
+        document.getElementById('btnOpenGoogle').addEventListener('click', () => {
+            const q = document.getElementById('topicInput').value.trim();
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+        });
+        document.getElementById('btnFetchUrl').addEventListener('click', fetchFromUrl);
+
+        // Settings
+        ['pageSize', 'mTop', 'mBottom', 'mLeft', 'mRight', 'hideCoverNum'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updatePageSettings);
+        });
+        ['fontFamily', 'fontSize', 'lineHeight'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateTypography);
+        });
+        document.querySelectorAll('[data-cmd]').forEach(btn => {
+            btn.addEventListener('click', () => document.execCommand(btn.getAttribute('data-cmd'), false, null));
+        });
+
+        // Cover, Header, Image
+        document.getElementById('btnBookCover').addEventListener('click', () => {
+            const ws = document.getElementById('workspace');
+            const cover = createPageElement(`
+                <div class="cover-design">
+                    <p style="font-family:'Moul',serif; font-size:15pt;">ព្រះរាជាណាចក្រកម្ពុជា<br>ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                    <div>
+                        <div class="cover-title">ចំណងជើងសៀវភៅ</div>
+                        <div class="cover-subtitle" style="margin-top:12px;">ឯកសារស្រាវជ្រាវ និងមេរៀនសង្ខេប</div>
+                    </div>
+                    <p style="font-weight:bold;">រៀបរៀងដោយ៖ ឈ្មោះអ្នកនិពន្ធ<br>ឆ្នាំ ២០២៦</p>
+                </div>
+            `, true);
+            ws.insertBefore(cover.parentElement, ws.firstElementChild);
+            updatePageNumbers();
+            cover.scrollIntoView({ behavior: 'smooth' });
+            saveToLocal();
+        });
+
+        document.getElementById('btnSlideHeader').addEventListener('click', () => {
+            const pages = document.querySelectorAll('.page');
+            const target = pages[pages.length - 1];
+            target.innerHTML = `<div class="slide-header-design">ចំណងជើងក្បាលស្លាយ</div>` + target.innerHTML;
+            checkPageOverflow(target);
+            saveToLocal();
+        });
+
+        document.getElementById('imgUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const pages = document.querySelectorAll('.page');
+                const target = pages[pages.length - 1];
+                target.innerHTML += `<img src="${ev.target.result}" class="inserted-img" style="width:280px;">`;
+                checkPageOverflow(target);
+                saveToLocal();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Presentation Mode
+        const presOverlay = document.getElementById('presOverlay');
+        const presContent = document.getElementById('presContent');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const ctx = drawCanvas.getContext('2d');
+
+        function renderSlide(idx) {
+            const pages = document.querySelectorAll('.page');
+            presContent.innerHTML = pages[idx].innerHTML;
+            document.getElementById('slideCounter').textContent = `${toKhmerNum(idx + 1)} / ${toKhmerNum(pages.length)}`;
+            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        }
+
+        document.getElementById('btnStartPres').addEventListener('click', () => {
+            currentSlideIndex = 0;
+            presOverlay.style.display = 'flex';
+            drawCanvas.width = window.innerWidth;
+            drawCanvas.height = window.innerHeight - 65;
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            renderSlide(0);
+        });
+
+        document.getElementById('btnNextSlide').addEventListener('click', () => {
+            const total = document.querySelectorAll('.page').length;
+            if (currentSlideIndex < total - 1) { currentSlideIndex++; renderSlide(currentSlideIndex); }
+        });
+        document.getElementById('btnPrevSlide').addEventListener('click', () => {
+            if (currentSlideIndex > 0) { currentSlideIndex--; renderSlide(currentSlideIndex); }
+        });
+        document.getElementById('btnExitPres').addEventListener('click', () => {
+            presOverlay.style.display = 'none';
+            isDrawingMode = false;
+        });
+
+        document.getElementById('btnTogglePen').addEventListener('click', () => {
+            isDrawingMode = !isDrawingMode;
+            drawCanvas.style.pointerEvents = isDrawingMode ? 'auto' : 'none';
+            document.getElementById('btnTogglePen').style.background = isDrawingMode ? '#16a34a' : '#dc2626';
+        });
+        document.getElementById('btnClearPen').addEventListener('click', () => {
+            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        });
+
+        drawCanvas.addEventListener('mousedown', e => { if (isDrawingMode) { isDrawing = true; ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY); } });
+        drawCanvas.addEventListener('mousemove', e => { if (isDrawing && isDrawingMode) { ctx.lineTo(e.clientX, e.clientY); ctx.stroke(); } });
+        drawCanvas.addEventListener('mouseup', () => isDrawing = false);
+
+        // ចាប់ផ្តើមកម្មវិធី
+        attachPageEvents(document.getElementById('page-1'));
+        loadFromLocal();
+        updatePageSettings();
+        updateTypography();
+    })();
+    </script>
+</body>
+</html>
